@@ -27,7 +27,21 @@ public class AiController {
     @Autowired
     private MerchantRiskAssessmentRepository merchantRiskAssessmentRepository;
 
-    private final String PYTHON_ML_URL = System.getenv("PYTHON_ML_URL") != null ? System.getenv("PYTHON_ML_URL") : "http://localhost:8000/predict-risk";
+    private String getPythonMlUrl() {
+        String envUrl = System.getenv("PYTHON_ML_URL");
+        if (envUrl == null || envUrl.trim().isEmpty()) {
+            return "http://localhost:8000/predict-risk";
+        }
+        envUrl = envUrl.trim();
+        if (!envUrl.endsWith("/predict-risk")) {
+            if (envUrl.endsWith("/")) {
+                return envUrl + "predict-risk";
+            } else {
+                return envUrl + "/predict-risk";
+            }
+        }
+        return envUrl;
+    }
 
     @PostConstruct
     public void seedCashflow() {
@@ -130,7 +144,7 @@ public class AiController {
             pythonPayload.put("cust_growth", assessmentRequest.getCustGrowth());
 
             // Call Python Microservice
-            Map<String, Object> pythonResponse = restTemplate.postForObject(PYTHON_ML_URL, pythonPayload, Map.class);
+            Map<String, Object> pythonResponse = restTemplate.postForObject(getPythonMlUrl(), pythonPayload, Map.class);
             
             if (pythonResponse != null) {
                 // Populate the assessment request with results

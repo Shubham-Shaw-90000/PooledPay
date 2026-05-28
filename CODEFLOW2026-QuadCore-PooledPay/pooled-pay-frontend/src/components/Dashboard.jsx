@@ -664,11 +664,16 @@ function AiCopilot() {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      setPrediction(data);
-      // Update history
-      setHistory(prev => [data, ...prev]);
+      if (!res.ok || data.error) {
+        alert("AI Risk Engine Error: " + (data.error || "Failed to generate risk assessment."));
+      } else {
+        setPrediction(data);
+        // Update history
+        setHistory(prev => [data, ...prev]);
+      }
     } catch (error) {
       console.error("Prediction error:", error);
+      alert("Network error: Could not reach the backend server.");
     }
     setLoading(false);
   };
